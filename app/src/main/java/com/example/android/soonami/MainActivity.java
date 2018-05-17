@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** URL to query the USGS dataset for earthquake information */
     private static final String USGS_REQUEST_URL =
-            "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2012-01-01&endtime=2012-12-01&minmagnitude=6";
+            "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2014-01-01&endtime=2014-12-01&minmagnitude=7";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,12 +114,17 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 // TODO Handle the IOException
             }
-
-            // Extract relevant fields from the JSON response and create an {@link Event} object
-            Event earthquake = extractFeatureFromJson(jsonResponse);
-
-            // Return the {@link Event} object as the result fo the {@link TsunamiAsyncTask}
+            Event earthquake;
+            if (jsonResponse!=null) {
+                // Extract relevant fields from the JSON response and create an {@link Event} object
+                earthquake = extractFeatureFromJson(jsonResponse);
+                // Return the {@link Event} object as the result fo the {@link TsunamiAsyncTask}
+            }else {
+                earthquake = null;
+            }
+            Log.v("earthquake value", "value--------->"+earthquake);
             return earthquake;
+
         }
 
         /**
@@ -154,6 +159,11 @@ public class MainActivity extends AppCompatActivity {
          */
         private String makeHttpRequest(URL url) throws IOException {
             String jsonResponse = "";
+
+            //if url is null, return early
+            if (url==null) {
+                return jsonResponse;
+            }
             HttpURLConnection urlConnection = null;
             InputStream inputStream = null;
             try {
@@ -163,7 +173,10 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.setConnectTimeout(15000 /* milliseconds */);
                 urlConnection.connect();
                 inputStream = urlConnection.getInputStream();
-                jsonResponse = readFromStream(inputStream);
+                if(urlConnection.getResponseCode()==200) {
+                    jsonResponse = readFromStream(inputStream);
+                }else
+                    jsonResponse=null;
             } catch (IOException e) {
                 // TODO: Handle the exception
             } finally {
