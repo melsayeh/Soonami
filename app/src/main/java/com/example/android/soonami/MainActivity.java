@@ -105,26 +105,30 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Event doInBackground(URL... urls) {
             // Create URL object
-            URL url = createUrl(USGS_REQUEST_URL);
+            URL url = null;
+            try {
+                url = new URL(USGS_REQUEST_URL);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+
 
             // Perform HTTP request to the URL and receive a JSON response back
             String jsonResponse = "";
             try {
                 jsonResponse = makeHttpRequest(url);
             } catch (IOException e) {
-                // TODO Handle the IOException
+                Log.e(LOG_TAG, "Error getting jsonResponse------>"+e);
             }
             Event earthquake;
             if (jsonResponse!=null) {
-                // Extract relevant fields from the JSON response and create an {@link Event} object
+                 //Extract relevant fields from the JSON response and create an {@link Event} object
                 earthquake = extractFeatureFromJson(jsonResponse);
-                // Return the {@link Event} object as the result fo the {@link TsunamiAsyncTask}
+                 //Return the {@link Event} object as the result fo the {@link TsunamiAsyncTask}
             }else {
                 earthquake = null;
             }
-            Log.v("earthquake value", "value--------->"+earthquake);
             return earthquake;
-
         }
 
         /**
@@ -143,16 +147,16 @@ public class MainActivity extends AppCompatActivity {
         /**
          * Returns new URL object from the given string URL.
          */
-        private URL createUrl(String stringUrl) {
-            URL url = null;
-            try {
-                url = new URL(stringUrl);
-            } catch (MalformedURLException exception) {
-                Log.e(LOG_TAG, "Error with creating URL", exception);
-                return null;
-            }
-            return url;
-        }
+//        private URL createUrl(String stringUrl) {
+//            URL url = null;
+//            try {
+//                url = new URL(stringUrl);
+//            } catch (MalformedURLException exception) {
+//                Log.e(LOG_TAG, "Error with creating URL", exception);
+//                return null;
+//            }
+//            return url;
+//        }
 
         /**
          * Make an HTTP request to the given URL and return a String as the response.
@@ -175,10 +179,11 @@ public class MainActivity extends AppCompatActivity {
                 inputStream = urlConnection.getInputStream();
                 if(urlConnection.getResponseCode()==200) {
                     jsonResponse = readFromStream(inputStream);
-                }else
-                    jsonResponse=null;
+                }else{
+                    Log.e(LOG_TAG,"Error response code:"+urlConnection.getResponseCode());
+                }
             } catch (IOException e) {
-                // TODO: Handle the exception
+               Log.e(LOG_TAG, "Problem retrieving the earthquake json results------->"+e);
             } finally {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
@@ -233,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
                     return new Event(title, time, tsunamiAlert);
                 }
             } catch (JSONException e) {
-                Log.e(LOG_TAG, "Problem parsing the earthquake JSON results", e);
+                Log.e(LOG_TAG, "Problem parsing the earthquake JSON results------>", e);
             }
             return null;
         }
